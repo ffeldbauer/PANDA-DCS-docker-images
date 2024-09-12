@@ -1,0 +1,80 @@
+#!/bin/bash
+set -e
+
+# first arg is `-f` or `--some-option`
+if [[ "${1#-}" != "$1" ]]; then
+  set -- archive-engine.sh "$@"
+fi
+
+if [[ "$1" == archive-engine.sh ]] ; then
+  ## Test if a property format file is specified in the command line
+  if [[ "$@" == *-settings* ]] ; then
+    SETTINGS=$(echo "$@" | sed -e 's/^.*-settings[[:space:]]\+\([^[:space:]]\+\).*$/\1/g')
+  else
+    echo >&2 "Missing settings"
+    exit 1
+  fi
+
+  ## Extract mysql access parameters from settings
+  SQL_USER=$(grep -e "^\s*org.csstudio.archive/user=" ${SETTINGS} | awk -F'=' '{print $2}')
+  SQL_PASSWD=$(grep -e "^\s*org.csstudio.archive/password=" ${SETTINGS} | awk -F'=' '{print $2}')
+  SQL_HOST=$(grep -e "^\s*org.csstudio.archive/url=" ${SETTINGS} | awk -F'[:/]' '{print $6}')
+  SQL_PORT=$(grep -e "^\s*org.csstudio.archive/url=" ${SETTINGS} | awk -F'[:/]' '{print $7}')
+  SQL_DATABASE=$(grep -e "^\s*org.csstudio.archive/url=" ${SETTINGS} | awk -F'[:/?]' '{print $8}')
+  SQL_DB_TYPE=$(grep -e "^\s*org.csstudio.archive/url=" ${SETTINGS} | awk -F'[=:/]' '{print $4}')
+
+  ## check if database is already available
+  ## and if the user/password/host settings are valid
+
+  ### prerequisites
+  case "$SQL_DB_TYPE" in
+    postgresql)
+      export PGPASSFILE=$(mktemp);
+      echo "${SQL_HOST}:${SQL_PORT}:${SQL_DATABASE}:${SQL_USER}:${SQL_PASSWD}" > ${PGPASSFILE};
+      chmod 600 ${PGPASSFILE};
+      trap "[ -f "${PGPASSFILE}" ] && rm ${PGPASSFILE}" 1 2 3 9 15
+      ;;
+  esac
+
+  ### loop
+  for i in {30..0}; do
+    case "$SQL_DB_TYPE" in
+      mysql)
+        if mysql -h${SQL_HOST} -u${SQL_USER} -p${SQL_PASSWD} -P${SQL_PORT:-3306} -e'\q' &> /dev/null ; then
+           break; fi ;;
+      postgresql)
+        if psql -h${SQL_HOST} -U${SQL_USER} -p${SQL_PORT:-5432} -c'\q' ${SQL_DATABASE} &> /dev/null ; then
+           break; fi ;;
+      *)
+        echo >&2 "unknown database type '$SQL_DB_TYPE'. ABORT"
+        exit 1 ;;
+    esac
+
+    echo "${SQL_DB_TYPE:-Database} init process in progress ... ($((30-$i))/30)"
+    sleep 1
+  done
+
+  if [[ "$i" == 0 ]] ; then
+    echo >&2 "Cannot access ${SQL_DB_TYPE:-UNDEFINED} database (${SQL_HOST:-UNDEFINED}:${SQL_PORT:-UNDEFINED}:${SQL_DATABASE:-UNDEFINED}:${SQL_USER:-UNDEFINED}). ABORT!"
+    exit 1
+  fi
+
+  ## When running for the first time, check if config directory is empty,
+  ## if yes: deploy example configuration
+  ## if not: look for xml files and import them as new engines
+  if [[ -f ${PHOEBUS_DIR}/FIRST_RUN ]] ; then
+    for f in /config/*.xml; do
+      ENGINE=$(basename $f .xml)
+      echo
+      echo "Importing engine $ENGINE"
+      ## TODO: include description? Maybe as comment in first line of xml file??
+      archive-engine.sh -engine ${ENGINE} -settings ${SETTINGS} -import $f -replace_engine -steal_channels
+      echo
+    done
+    rm ${ARCHIVER_DIR}/FIRST_RUN
+  fi
+
+fi
+
+exec "$@"
+

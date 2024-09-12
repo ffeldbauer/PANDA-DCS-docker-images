@@ -1,0 +1,59 @@
+services:
+
+  example-ioc:
+    image: paluma.ruhr-uni-bochum.de/epics/ioc:3.0.0
+    volumes:
+      - ${PWD}:/config
+    restart: unless-stopped
+    networks:
+      - ioc-bridge
+    ports:
+      - 5064:5064
+      - 5064:5064/udp
+      - 5075:5075
+      - 5076:5076/udp
+    command: -S example_demo.cmd
+
+  hameg-ioc:
+    image: paluma.ruhr-uni-bochum.de/epics/ioc:3.0.0
+    volumes:
+      - ${PWD}:/config
+    devices:
+      - /dev/ttyUSB0:/dev/ttyHameg
+    restart: unless-stopped
+    networks:
+      - ioc-bridge
+    stdin_open: true
+    tty: true
+    command: hameg_demo.cmd
+
+  huber-ioc:
+    image: paluma.ruhr-uni-bochum.de/epics/ioc:3.0.0
+    volumes:
+      - ${PWD}:/config
+    restart: unless-stopped
+    networks:
+      - ioc-bridge
+    stdin_open: true
+    tty: true
+    command: huber_demo.cmd
+
+  wiener-ioc:
+    image: paluma.ruhr-uni-bochum.de/epics/ioc:3.0.0
+    volumes:
+      - ${PWD}:/config
+    restart: unless-stopped
+    networks:
+      - ioc-bridge
+    stdin_open: true
+    tty: true
+    command: wienerpl_demo.cmd
+
+
+networks:
+  ioc-bridge:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.50.0.0/24
+          gateway: 10.50.0.1

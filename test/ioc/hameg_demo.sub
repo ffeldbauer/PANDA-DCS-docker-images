@@ -1,0 +1,9 @@
+file "$(DB_FILE_PATH)/hmp4040.db"
+{
+  pattern { CHAN, PORT }
+    { 0, hmp_1 }
+    { 1, hmp_1 }
+    { 2, hmp_1 }
+    { 3, hmp_1 }
+}
+

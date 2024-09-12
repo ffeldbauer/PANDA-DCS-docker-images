@@ -1,0 +1,20 @@
+file "$(DB_FILE_PATH)/THMP_board.db"
+{
+  pattern{ H, address }
+    { TEST, 0x700 }
+}
+
+file "$(DB_FILE_PATH)/THMP_temp_simple.db"
+{
+  pattern{ H, N, address, no }
+    { TEST, PT100:0, 0x700, 0 }
+    { TEST, PT100:1, 0x700, 1 }
+    { TEST, PT100:2, 0x700, 2 }
+    { TEST, PT100:3, 0x700, 3 }
+    { TEST, PT100:4, 0x700, 4 }
+    { TEST, PT100:5, 0x700, 5 }
+    { TEST, PT100:6, 0x700, 6 }
+    { TEST, PT100:7, 0x700, 7 }
+}
+
+

@@ -1,0 +1,56 @@
+From 09dc45736e396cb9c7e703e537364f081ef0ee49 Mon Sep 17 00:00:00 2001
+From: Florian Feldbauer <florian@ep1.ruhr-uni-bochum.de>
+Date: Mon, 9 Sep 2024 18:12:39 +0200
+Subject: [PATCH 1/1] Disable '-server' and '-log' options
+
+---
+ src/gateway.cc | 26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/src/gateway.cc b/src/gateway.cc
+index 8cc83fb..5c19956 100644
+--- a/src/gateway.cc
++++ b/src/gateway.cc
+@@ -767,10 +767,10 @@ int main(int argc, char** argv)
+ 				case PARM_HELP:
+ 					print_instructions();
+ 					return 0;
+-				case PARM_SERVER:
+-					make_server=1;
+-					not_done=0;
+-					break;
++//				case PARM_SERVER:
++//					make_server=1;
++//					not_done=0;
++//					break;
+ 				case PARM_CACHE:
+ 					cache=0;
+ 					not_done=0;
+@@ -829,15 +829,15 @@ int main(int argc, char** argv)
+ 						}
+ 					}
+ 					break;
+-				case PARM_LOG:
+-					if(++i>=argc) no_error=0;
+-					else {
+-						if(argv[i][0]=='-') no_error=0;
+-						else {
+-							log_file=argv[i];
+-							not_done=0;
+-						}
+-					}
++//				case PARM_LOG:
++//					if(++i>=argc) no_error=0;
++//					else {
++//						if(argv[i][0]=='-') no_error=0;
++//						else {
++//							log_file=argv[i];
++//							not_done=0;
++//						}
++//					}
+ 					break;
+ 				case PARM_COMMAND:
+ 					if(++i>=argc) no_error=0;
+-- 
+2.39.2
+

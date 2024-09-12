@@ -1,0 +1,18 @@
+services:
+
+  cagw:
+    image: paluma.ruhr-uni-bochum.de/epics/ca-gateway:2.1.3
+    network_mode: host
+    volumes:
+      - ${PWD}:/config
+    restart: always
+    command: -cip 10.50.0.255 -sip 192.168.0.1 -pvlist gw_pvlist -access gw_access
+
+# pvagw:
+#   image: paluma.ruhr-uni-bochum.de/epics/pva-gateway
+#   network_mode: host
+#   volumes:
+#     - ${PWD}:/config
+#   restart: always
+#   command: ...
+

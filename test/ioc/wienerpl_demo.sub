@@ -1,0 +1,7 @@
+file "$(DB_FILE_PATH)/WienerPL500.db"
+{
+  pattern { H, N, CRATE, CH }
+    { LMD, MUPIX:LV:P0:H1, 192.168.0.5, u0 }
+    { LMD, MUPIX:LV:P0:H1, 192.168.0.5, u1 }
+}
+

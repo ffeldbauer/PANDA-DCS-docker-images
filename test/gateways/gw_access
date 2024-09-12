@@ -1,0 +1,22 @@
+UAG(GatewayAdmin)  {gateway,florian}
+UAG(engineers)     {jones,roberts,florian}
+HAG(engineershost) {snoopy,lenovoT450s}
+
+ASG(DEFAULT) {
+   RULE(1,READ)
+}
+
+ASG(GatewayAdmin) {
+   RULE(1,READ)
+   RULE(1,WRITE,TRAPWRITE){
+     UAG(GatewayAdmin)
+   }
+}
+
+ASG(PowerSupply) {
+   RULE(1,READ)
+   RULE(1,WRITE) {
+     UAG(engineers)
+     HAG(engineershost)
+   }
+}

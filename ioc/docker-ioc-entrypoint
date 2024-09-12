@@ -1,0 +1,26 @@
+#!/usr/bin/bash
+
+. /etc/profile.d/epics.sh
+
+HAS_MINUS_D="no"
+for f in $@; do
+  if [[ "${f#-}" != "$f" ]]; then
+    if [[ "$f" == "-D" ]] ; then
+      HAS_MINUS_D="yes"
+    fi
+  elif [[ -f /config/$f ]]; then
+    if ! grep -e "^dbLoadDatabase" /config/$f > /dev/null && [[ "$HAS_MINUS_D" == "no" ]] ; then
+      set -- -D "$@"
+    else
+      set -- ${IOC_EXE} "$@"
+    fi
+    break
+  fi
+done
+
+# first arg is `-f` or `--some-option`
+if [[ "${1#-}" != "$1" ]]; then
+  set -- ${IOC_EXE} "$@"
+fi
+
+exec "$@"

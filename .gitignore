@@ -1,0 +1,10 @@
+target/
+__pycache__/
+sql_root_password.txt
+.ash_history
+.*.swp
+*~
+*.pyc
+.iocsh_history
+gateway.restart
+gateway.killer

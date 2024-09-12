@@ -1,0 +1,5 @@
+EVALUATION ORDER ALLOW, DENY
+
+Test.*              ALLOW
+HMP4040.*           ALLOW PowerSupply 1
+

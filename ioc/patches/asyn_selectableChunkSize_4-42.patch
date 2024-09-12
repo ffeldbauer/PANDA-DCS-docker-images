@@ -1,0 +1,149 @@
+From 443c511c46cc465f95a77aa64c296474523c3535 Mon Sep 17 00:00:00 2001
+From: Florian Feldbauer <florian@ep1.ruhr-uni-bochum.de>
+Date: Wed, 13 Jul 2022 10:21:25 +0200
+Subject: [PATCH] Interpose Delay with selectable chunk size
+
+Patch provided by Dirk Zimoch, modifiy the asynInterposeDelay driver
+to have a selectable chunk size
+---
+ asyn/miscellaneous/asynInterposeDelay.c | 55 ++++++++++++++++---------
+ 1 file changed, 36 insertions(+), 19 deletions(-)
+
+diff --git a/asyn/miscellaneous/asynInterposeDelay.c b/asyn/miscellaneous/asynInterposeDelay.c
+index 75a935b2..bef22d1b 100644
+--- a/asyn/miscellaneous/asynInterposeDelay.c
++++ b/asyn/miscellaneous/asynInterposeDelay.c
+@@ -3,7 +3,7 @@
+ 
+ /* Interpose for devices where each written char needs a delay
+  * before sending the next char.
+- *
++ * 
+  * Author: Dirk Zimoch
+  */
+ 
+@@ -13,7 +13,6 @@
+ #include <epicsThread.h>
+ #include <iocsh.h>
+ 
+-#include <epicsExport.h>
+ #include "asynDriver.h"
+ #include "asynOctet.h"
+ #include "asynOption.h"
+@@ -27,7 +26,8 @@ typedef struct interposePvt {
+     asynOption    *pasynOptionDrv;
+     void          *optionPvt;
+     double        delay;
+-}interposePvt;
++    unsigned long chunksize;
++} interposePvt;
+ 
+ /* asynOctet methods */
+ static asynStatus writeIt(void *ppvt, asynUser *pasynUser,
+@@ -36,16 +36,21 @@ static asynStatus writeIt(void *ppvt, asynUser *pasynUser,
+     interposePvt *pvt = (interposePvt *)ppvt;
+     size_t n;
+     size_t transfered = 0;
++    double delay = pvt->delay;
++    unsigned long chunksize = pvt->chunksize;
+     asynStatus status = asynSuccess;
+ 
+-    while (transfered < numchars) {
+-        /* write one char at a time */
++    while (numchars) {
++        /* write one chunk at a time */
++        if (numchars < chunksize)
++            chunksize = numchars;
+         status = pvt->pasynOctetDrv->write(pvt->octetPvt,
+-            pasynUser, data, 1, &n);
++            pasynUser, data, chunksize, &n);
+         if (status != asynSuccess) break;
+         /* delay */
+-        epicsThreadSleep(pvt->delay);
++        epicsThreadSleep(delay);
+         transfered+=n;
++        numchars-=n;
+         data+=n;
+     }
+     *nbytesTransfered = transfered;
+@@ -140,6 +145,10 @@ getOption(void *ppvt, asynUser *pasynUser,
+         epicsSnprintf(val, valSize, "%g", pvt->delay);
+         return asynSuccess;
+     }
++    if (epicsStrCaseCmp(key, "chunksize") == 0) {
++        epicsSnprintf(val, valSize, "%lu", pvt->chunksize);
++        return asynSuccess;
++    }
+     if (pvt->pasynOptionDrv)
+         return pvt->pasynOptionDrv->getOption(pvt->optionPvt,
+             pasynUser, key, val, valSize);
+@@ -152,13 +161,22 @@ setOption(void *ppvt, asynUser *pasynUser, const char *key, const char *val)
+ {
+     interposePvt *pvt = (interposePvt *)ppvt;
+     if (epicsStrCaseCmp(key, "delay") == 0) {
+-        if(sscanf(val, "%lf", &pvt->delay) != 1) {
++        if (sscanf(val, "%lf", &pvt->delay) != 1) {
+             epicsSnprintf(pasynUser->errorMessage, pasynUser->errorMessageSize,
+                 "Bad number %s", val);
+             return asynError;
+         }
+         return asynSuccess;
+     }
++    if (epicsStrCaseCmp(key, "chunksize") == 0) {
++        if (sscanf(val, "%lu", &pvt->chunksize) != 1) {
++            epicsSnprintf(pasynUser->errorMessage, pasynUser->errorMessageSize,
++                "Bad unsigned number %s", val);
++            return asynError;
++        }
++        if (pvt->chunksize == 0) pvt->chunksize = 1;
++        return asynSuccess;
++    }
+     if (pvt->pasynOptionDrv)
+         return pvt->pasynOptionDrv->setOption(pvt->optionPvt,
+             pasynUser, key, val);
+@@ -171,9 +189,8 @@ static asynOption option = {
+     setOption, getOption
+ };
+ 
+-
+-ASYN_API int
+-asynInterposeDelay(const char *portName, int addr, double delay)
++epicsShareFunc int
++asynInterposeDelay(const char *portName, int addr, double delay, unsigned long chunksize)
+ {
+     interposePvt *pvt;
+     asynStatus status;
+@@ -208,22 +225,22 @@ asynInterposeDelay(const char *portName, int addr, double delay)
+         pvt->pasynOptionDrv = (asynOption *)poptionasynInterface->pinterface;
+     }
+     pvt->delay = delay;
++    pvt->chunksize = chunksize ? chunksize : 1;
+     return 0;
+ }
+ 
+ /* register asynInterposeDelay*/
+-static const iocshArg iocshArg0 = {"portName", iocshArgString};
+-static const iocshArg iocshArg1 = {"addr", iocshArgInt};
+-static const iocshArg iocshArg2 = {"delay(sec)", iocshArgDouble };
+-static const iocshArg *iocshArgs[] =
+-    {&iocshArg0, & iocshArg1, &iocshArg2};
+-
+ static const iocshFuncDef asynInterposeDelayFuncDef =
+-    {"asynInterposeDelay", 3, iocshArgs};
++    {"asynInterposeDelay", 4, (const iocshArg *[]) {
++    &(iocshArg) { "portName", iocshArgString },
++    &(iocshArg) {  "addr", iocshArgInt },
++    &(iocshArg) {  "delay", iocshArgDouble },
++    &(iocshArg) {  "chunksize", iocshArgInt },
++}};
+ 
+ static void asynInterposeDelayCallFunc(const iocshArgBuf *args)
+ {
+-    asynInterposeDelay(args[0].sval, args[1].ival, args[2].dval);
++    asynInterposeDelay(args[0].sval, args[1].ival, args[2].dval, args[3].ival);
+ }
+ 
+ static void asynInterposeDelayRegister(void)
+-- 
+2.30.2
+
