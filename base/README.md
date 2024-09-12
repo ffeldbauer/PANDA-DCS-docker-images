@@ -2,14 +2,6 @@
 
 This image is used as a base image for the [IOC](ioc/), [CA-Gateway](ca-gateway/), and [SNCSEQ](sncseq/) images
 
-# Available tags @ paluma.ruhr-uni-bochum.de
-
-| Digest       | Tags                 | Platforms    |
-|--------------|----------------------|--------------|
-| 7fa407064442 | 7.0.8.1 , 7 , latest | linux-amd64  |
-| 9e7d64d3e85c | 7.0.8.1 , 7 , latest | linux-arm64  |
-| 515cb1f1fc10 | 7.0.8.1 , 7 , latest | linux-arm/v7 |
-
 # Build
 
 ```bash
