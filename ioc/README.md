@@ -24,17 +24,15 @@ If you want to load e.g. the `hmp4040.db` database, you can use the following co
 dbLoadRecords( "$(DB_FILE_PATH)/hmp4040.db" )
 ```
 
-## Channel access and PVaccess connections
+## Channel access connections
 
 To allow Channel Access or PVaccess clients to see the PVs inside your ioc shell, the corresponding ports of the container need to be mapped
 to the corresponding ports of your host system:
 ```bash
 $ docker run --name some-ioc -it \
-  -p 5064-5065:5064-5065 -p 5064-5065:5064-5065/udp \
-  -p 5075-5076:5075-5076 -p 5075-5076:5075-5076/udp \
+  -p 5064:5064 -p 5064:5064/udp \
   paluma.ruhr-uni-bochum.de/epics/ioc:tag
 ```
-Channel Access uses the ports 5064 and 5065 with both tcp and udp protocols, while PVaccess uses 5075 and 5076.
 
 ## Providing a custom start up script
 
@@ -90,21 +88,13 @@ $ docker run --name some-ioc -dit --network host -v /my/custom:/config paluma.ru
 Network bridges (as the default docker network) do not forward broadcasts.
 Thus the ioc shell cannot act as CA/PVaccess client by default.
 
-There are a few methods to work around this issue:
+There are a two methods to work around this issue:
 
 - Use network mode `host`:
   ```bash
   $ docker run --name some-ioc -dit --network host -v /my/custom:/config paluma.ruhr-uni-bochum.de/epics/ioc:tag my-st.cmd
   ```
-
-- Create a new docker network using the [macvlan](https://docs.docker.com/engine/network/drivers/macvlan/) driver (not yet tested!!)
-  ```bash
-  $ docker network create -d macvlan \
-    --subnet=172.16.86.0/24 \
-    --gateway=172.16.86.1 \
-    -o parent=eth0 pub_net
-  $ docker run --name some-ioc -dit --network pub_net -v /my/custom:/config paluma.ruhr-uni-bochum.de/epics/ioc:tag my-st.cmd
-  ```
+  **ATTENTION:** This approaches will not work with rootless docker!
 
 - Manually set the the list of CA/PVaccess servers:
   ```bash
@@ -114,7 +104,9 @@ There are a few methods to work around this issue:
     paluma.ruhr-uni-bochum.de/epics/ioc:tag my-st.cmd
   ```
 
-**ATTENTION:** The first two approaches will not work with rootless docker!
+Due to the way the PVaccess protocoll is implemented, communication with the PVAserver of the IOC is not possible with bridge networks, even if the corresponding ports are mapped.
+See [](https://github.com/epics-base/pvAccessCPP/issues/197).
+Either use `--network host` for the Docker container or add a pva-gateway (with network host) that uses the docker network as client side.
 
 # Build
 
