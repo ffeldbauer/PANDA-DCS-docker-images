@@ -2,14 +2,6 @@
 
 This image uses epics-base as base image to be build
 
-# Available tags @ paluma.ruhr-uni-bochum.de
-
-| Digest       | Tags                 | Platforms    |
-|--------------|----------------------|--------------|
-| 32b8bc9b236b | 2.1.3 , 2 , latest   | linux-amd64  |
-| a5fe4af437cd | 2.1.3 , 2 , latest   | linux-arm64  |
-| 9d0dd30a6cf9 | 2.1.3 , 2 , latest   | linux-arm/v7 |
-
 # How to use this image
 
 ## Start a ca-gateway instance
