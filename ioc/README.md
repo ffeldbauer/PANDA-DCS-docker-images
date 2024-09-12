@@ -105,7 +105,7 @@ There are a two methods to work around this issue:
   ```
 
 Due to the way the PVaccess protocoll is implemented, communication with the PVAserver of the IOC is not possible with bridge networks, even if the corresponding ports are mapped.
-See [](https://github.com/epics-base/pvAccessCPP/issues/197).
+See [this issue](https://github.com/epics-base/pvAccessCPP/issues/197).
 Either use `--network host` for the Docker container or add a pva-gateway (with network host) that uses the docker network as client side.
 
 # Build
