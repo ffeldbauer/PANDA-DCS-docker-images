@@ -2,14 +2,6 @@
 
 Docker image for a ready-to-use EPICS ioc with various support modules
 
-# Available tags @ paluma.ruhr-uni-bochum.de
-
-| Digest       | Tags                 | Platforms    |
-|--------------|----------------------|--------------|
-| 6e31b1697efd | 3.0.0 , 3 , latest   | linux-amd64  |
-| 6ef1a0209c19 | 3.0.0 , 3 , latest   | linux-arm64  |
-| bcc69ec2cfa1 | 3.0.0 , 3 , latest   | linux-arm/v7 |
-
 # How to use this image
 
 ## Start an ioc instance
