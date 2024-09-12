@@ -2,14 +2,6 @@
 
 This image is used as base image for building finite state machines
 
-# Available tags @ paluma.ruhr-uni-bochum.de
-
-| Digest       | Tags                 | Platforms    |
-|--------------|----------------------|--------------|
-| 7ff25cd202d7 | 2.2.9 , 2 , latest   | linux-amd64  |
-| f5166e4c7078 | 2.2.9 , 2 , latest   | linux-arm64  |
-| 3e3ebfa27185 | 2.2.9 , 2 , latest   | linux-arm/v7 |
-
 # Build
 
 ```bash
