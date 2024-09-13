@@ -104,8 +104,9 @@ There are possible workarounds:
       inet 192.168.0.1/24 brd 192.168.0.255 scope global enp7s0
          valid_lft forever preferred_lft forever
   $ docker network create -d ipvlan \
-      --subnet=192.168.0.128/25 \
+      --subnet=192.168.0.0/24 \
       --gateway=192.168.0.1 \
+      --ip-range=192.168.0.128/25 \
       -o parent=enp7s0 pub_net
   $ docker run --name pub-ioc -dit --network pub_net -v /my/custom:/config paluma.ruhr-uni-bochum.de/epics/ioc:3 my-st.cmd
   ```
