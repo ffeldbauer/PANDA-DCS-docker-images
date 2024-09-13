@@ -77,7 +77,7 @@ The `--device <DEV>` option adds a host device to the container so that the ioc 
 
 The available device support routines inside this image use libsocketcan for the connection.
 Libsocketcan exposes the CAN bus interface as a network device.
-To access this network device from with the container, network mode `host` is required:
+To access this network device from within the container, network mode `host` is required:
 ```bash
 $ docker run --name some-ioc -dit --network host -v /my/custom:/config paluma.ruhr-uni-bochum.de/epics/ioc:tag my-st.cmd
 ```
@@ -94,7 +94,7 @@ There are possible workarounds:
   ```bash
   $ docker run --name some-ioc -dit --network host -v /my/custom:/config paluma.ruhr-uni-bochum.de/epics/ioc:tag my-st.cmd
   ```
-  **ATTENTION:** This approaches will not work with rootless docker!
+  **ATTENTION:** This approach will not work with rootless docker!
 
 - Create a docker network with `ipvlan` or `macvlan` drivers
   ```bash
@@ -107,9 +107,9 @@ There are possible workarounds:
       --subnet=192.168.0.128/25 \
       --gateway=192.168.0.1 \
       -o parent=enp7s0 pub_net
-  $ docker run --name some-ioc -dit --network pub_net -v /my/custom:/config paluma.ruhr-uni-bochum.de/epics/ioc:tag my-st.cmd
+  $ docker run --name pub-ioc -dit --network pub_net -v /my/custom:/config paluma.ruhr-uni-bochum.de/epics/ioc:3 my-st.cmd
   ```
-  **ATTENTION:** This approaches will not work with rootless docker!
+  **ATTENTION:** This approach will not work with rootless docker!
   The docker engine will assign an ip address to the container independend of any DHCP server eventually running on this network.
  
 - Manually set the the list of CA/PVaccess servers:
