@@ -88,7 +88,7 @@ $ docker run --name some-ioc -dit --network host -v /my/custom:/config paluma.ru
 Network bridges (as the default docker network) do not forward broadcasts.
 Thus the ioc shell cannot act as CA/PVaccess client by default.
 
-There are a two methods to work around this issue:
+There are possible workarounds:
 
 - Use network mode `host`:
   ```bash
@@ -96,6 +96,22 @@ There are a two methods to work around this issue:
   ```
   **ATTENTION:** This approaches will not work with rootless docker!
 
+- Create a docker network with `ipvlan` or `macvlan` drivers
+  ```bash
+  $ ip addr show up
+  2: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+      link/ether 70:85:c2:33:f9:1b brd ff:ff:ff:ff:ff:ff
+      inet 192.168.0.1/24 brd 192.168.0.255 scope global enp7s0
+         valid_lft forever preferred_lft forever
+  $ docker network create -d ipvlan \
+      --subnet=192.168.0.128/25 \
+      --gateway=192.168.0.1 \
+      -o parent=enp7s0 pub_net
+  $ docker run --name some-ioc -dit --network pub_net -v /my/custom:/config paluma.ruhr-uni-bochum.de/epics/ioc:tag my-st.cmd
+  ```
+  **ATTENTION:** This approaches will not work with rootless docker!
+  The docker engine will assign an ip address to the container independend of any DHCP server eventually running on this network.
+ 
 - Manually set the the list of CA/PVaccess servers:
   ```bash
   $ docker run --name some-ioc -dit -v /my/custom:/config \
@@ -106,7 +122,8 @@ There are a two methods to work around this issue:
 
 Due to the way the PVaccess protocoll is implemented, communication with the PVAserver of the IOC is not possible with bridge networks, even if the corresponding ports are mapped.
 See [this issue](https://github.com/epics-base/pvAccessCPP/issues/197).
-Either use `--network host` for the Docker container or add a pva-gateway (with network host) that uses the docker network as client side.
+
+Either use host/ipvlan/macvlan network for the Docker container or add a pva-gateway with network host/ipvlan/macvlan that uses the bridged docker network as client side.
 
 # Build
 
